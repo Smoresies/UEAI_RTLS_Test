@@ -16,6 +16,9 @@ class UEAI_RTLS_TEST_API ABoidEnemy : public ACharacter
 
   static APawn* player;
 
+  int pbX = 0;
+  int pbY = 0;
+
 public:
   // Sets default values for this character's properties
   ABoidEnemy();
@@ -38,17 +41,22 @@ protected:
   int protectedRange = 75;
 
   // Tunable value for Cohesion, for greater cohesion increase value.
-  double centeringValue = 0.0005;
+  double centeringValue = 0.005;
 
   // Tunable value for Separation. Can turn up to have less clumps
-  double avoidValue = 0.05;
+  double avoidValue = 0.01;
 
   // Tunable value for Alignment, how much we adjust velocity to go same direction as others.
-  double matchingFactor = 0.05;
+  double matchingFactor = 0.10;
 
   // Uses this for max/min speed, adjust based on proximity to player.
   double maxSpeed = 6;
   double minSpeed = 3;
+
+  const int cautiousSpeed = 400;
+  const int aggressiveSpeed = 800;
+
+
 
 public:
   // Called every frame

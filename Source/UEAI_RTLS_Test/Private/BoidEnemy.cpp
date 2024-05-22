@@ -37,8 +37,32 @@ void ABoidEnemy::EndPlay(const EEndPlayReason::Type EndPlayReason)
 void ABoidEnemy::Tick(float DeltaTime)
 {
   Super::Tick(DeltaTime);
+  if (player != nullptr)
+  {
+    
+    float dist = this->GetDistanceTo(player);
+    // UE_LOG(LogTemp, Warning, TEXT("dist is %f"), dist);
+    if (dist <= 2000)
+    {
+      minSpeed = aggressiveSpeed - 100;
+      maxSpeed = aggressiveSpeed + 100;
+      BoidMovement();
+    }
+    else if (dist <= 7000)
+    {
+      minSpeed = cautiousSpeed - 100;
+      maxSpeed = cautiousSpeed + 100;
+      BoidMovement();
+    }
+  }
+  // if player is nullptr, try to get reference to the player.
+  else
+  {
+    ABoidEnemy::player = UGameplayStatics::GetPlayerPawn(this->GetWorld(), 0);
+    UE_LOG(LogTemp, Warning, TEXT("Hello World 2!"));
+  }
   
-  BoidMovement();
+  
 }
 
 
@@ -53,6 +77,8 @@ void ABoidEnemy::BoidMovement()
   int xpos_avg = 0, ypos_avg = 0, xvel_avg = 0, yvel_avg = 0,
     neighboring_boids = 0, close_dx = 0, close_dy = 0;
   ABoidEnemy* randBoid = nullptr;
+
+  
 
   if (numBoids > ABoidEnemy::maxSeen)
     ABoidEnemy::maxSeen = numBoids;
@@ -83,9 +109,10 @@ void ABoidEnemy::BoidMovement()
       else if (squared_distance < visualRange * visualRange)
       {
         xpos_avg += pBoid->GetActorLocation().X;
+        UE_LOG(LogTemp, Warning, TEXT("%f"), xpos_avg);
         ypos_avg += pBoid->GetActorLocation().Y;
-        xvel_avg += pBoid->GetVelocity().X;
-        yvel_avg += pBoid->GetVelocity().Y;
+        xvel_avg += pBoid->pbX;
+        yvel_avg += pBoid->pbY;
 
         // Increment number of boids within visual range
         neighboring_boids++;
@@ -105,25 +132,25 @@ void ABoidEnemy::BoidMovement()
     xvel_avg = xvel_avg / neighboring_boids;
     yvel_avg = yvel_avg / neighboring_boids;
 
-    bX = (this->GetVelocity().X +
+    bX = (this->pbX +
       (xpos_avg - this->GetActorLocation().X) * centeringValue +
-      (xvel_avg - this->GetVelocity().X) * matchingFactor);
+      (xvel_avg - this->pbX) * matchingFactor);
 
-    bY = (this->GetVelocity().Y +
+    bY = (this->pbY +
       (ypos_avg - this->GetActorLocation().Y) * centeringValue +
-      (yvel_avg - this->GetVelocity().Y) * matchingFactor);
+      (yvel_avg - this->pbY) * matchingFactor);
   }
   // If no other are in 200 and we aren't the last one.
   else if(randBoid != nullptr)
   {
     // Choose random boid to go towards if none are within 200
-    bX = (this->GetVelocity().X +
+    bX = (this->pbX +
       (randBoid->GetActorLocation().X - this->GetActorLocation().X) * centeringValue +
-      (randBoid->GetVelocity().X - this->GetVelocity().X) * matchingFactor);
+      (randBoid->pbX - this->pbX) * matchingFactor);
 
-    bY = (this->GetVelocity().Y +
+    bY = (this->pbY +
       (randBoid->GetActorLocation().Y - this->GetActorLocation().Y) * centeringValue +
-      (randBoid->GetActorLocation().Y - this->GetVelocity().Y) * matchingFactor);
+      (randBoid->GetActorLocation().Y - this->pbY) * matchingFactor);
   }
 
   bX += close_dx * avoidValue;
@@ -154,7 +181,8 @@ void ABoidEnemy::BoidMovement()
   // boid.x = boid.x + bX;
   // boid.y = boid.y + bY;
   this->AddMovementInput(FVector(bX, bY, 0));
-
+  pbX = bX;
+  pbY = bY;
 
 
 }
